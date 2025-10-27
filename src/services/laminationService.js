@@ -1,9 +1,9 @@
-import { prisma } from "@/lib/prisma";
+import client from '@/lib/libsqlClient';
 
 export async function getLaminations() {
     try{
-        const laminations = await prisma.laminations.findMany();
-        return laminations;
+        const res = await client.execute('SELECT id, name, price FROM Laminations ORDER BY id;');
+        return res.rows;
     }
     catch (error){
         throw new Error(`Failed to fetch lamination sheets: ${error.message}`)
@@ -12,13 +12,11 @@ export async function getLaminations() {
 
 export async function createLamination(){
     try{
-        const lamination = await prisma.laminations.create(
-            {data:{
-                name:'',
-                price:0
-            }}
-        )
-        return lamination;
+        const res = await client.execute(
+            'INSERT INTO Laminations (name, price) VALUES (?, ?) RETURNING id, name, price;',
+            { args: ['', 0] }
+        );
+        return res.rows[0];
     }
     catch(error){
         throw new Error(`Failed to create lamination sheet: ${error}`)
@@ -27,11 +25,11 @@ export async function createLamination(){
 
 export async function updateLamination(id,name,price){
     try{
-        const updatedLamination = await prisma.laminations.update({
-            where:{id},
-            data:{name,price:Number(price)}
-        })
-        return updatedLamination;
+        const res = await client.execute(
+            'UPDATE Laminations SET name = ?, price = ? WHERE id = ? RETURNING id, name, price;',
+            { args: [name, Number(price), id] }
+        );
+        return res.rows[0];
     }
     catch(error){
         throw new Error(`Failed to update lamination sheet: ${error}`)
@@ -40,10 +38,8 @@ export async function updateLamination(id,name,price){
 
 export async function deleteLamination(id){
     try{
-        const deletedLamination = await prisma.laminations.delete({
-            where:{id}
-        })
-        return deletedLamination;
+        const res = await client.execute('DELETE FROM Laminations WHERE id = ? RETURNING id;', { args: [id] });
+        return res.rows[0];
     }
     catch(error){
         throw new Error(`Failed to delete lamination sheet: ${error}`)

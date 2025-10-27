@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start"
+    "start": "next start",
+    "turso:export": "sh scripts/export-sqlite.sh",
+    "turso:import": "node scripts/import-to-turso.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
