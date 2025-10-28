@@ -336,7 +336,6 @@ export default function AdminPage() {
                         </span>
                         <span className="ml-2 text-gray-600">
                           {proposal.total ? proposal.total + "₺" : "-"}
-                          {proposal.id}
                         </span>
                       </div>
                      <div className="flex gap-4">
