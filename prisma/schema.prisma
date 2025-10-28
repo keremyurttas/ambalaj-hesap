@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model PaperSheets {
+  id  Int @id @default(autoincrement())
+  name String
+  price Int
+  
+  proposals Proposal[]
+}
+
+model Laminations {
+  id  Int @id @default(autoincrement())
+  name String
+  price Int
+
+  proposals Proposal[]
+
+}
+
+model Proposal {
+  id             Int      @id @default(autoincrement())
+  name           String
+  bladeWidth     Int
+  bladeLength    Int
+  machineRatio   Int
+  numOfPieces    Int
+  selectedPaper  Int      // Should be PaperSheets id (FK)
+  paperSheetPriceAtProposal Int?
+  printingPrice  Int
+  laminationPriceAtProposal Int?
+  lamination     Int      // Should be Laminations id (FK)
+  cuttingPrice   Int
+  gluingPrice    Int
+  bladePrice     Int
+  shipping       Int
+  subTotal      Int
+  total    Int
+  createdAt      DateTime @default(now())
+
+  // Relations (recommended)
+  paperSheet     PaperSheets @relation(fields: [selectedPaper], references: [id])
+  laminationObj  Laminations @relation(fields: [lamination], references: [id])
+}
