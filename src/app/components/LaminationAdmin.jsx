@@ -48,15 +48,34 @@ export default function LaminationAdmin({ lamination, deleted, onUpdate }) {
 
   async function deleteLamination(id) {
     setIsDeleting(true);
-    const res = await fetch("/api/laminations", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id,
-      }),
-    });
-    deleted(id);
-    setIsDeleting(false);
+    try {
+      const res = await fetch("/api/laminations", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('Failed to delete lamination:', res.status, text);
+        setIsDeleting(false);
+        return;
+      }
+      const text = await res.text();
+      if (text) {
+        try {
+          const json = JSON.parse(text);
+          if (json && json.id) deleted(json.id);
+        } catch (e) {
+          deleted(id);
+        }
+      } else {
+        deleted(id);
+      }
+    } catch (err) {
+      console.error('Error deleting lamination', err);
+    } finally {
+      setIsDeleting(false);
+    }
   }
   return (
     <div className="flex gap-2">

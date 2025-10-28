@@ -50,15 +50,36 @@ export default function PaperSheetAdmin({ paper, deleted, onUpdate }) {
 
   async function deletePaper(id) {
     setIsDeleting(true);
-    const res = await fetch("/api/paper-sheets", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id,
-      }),
-    });
-    deleted(id);
-    setIsDeleting(false);
+    try {
+      const res = await fetch("/api/paper-sheets", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('Failed to delete paper sheet:', res.status, text);
+        setIsDeleting(false);
+        return;
+      }
+      // Optionally parse response
+      const text = await res.text();
+      if (text) {
+        try {
+          const json = JSON.parse(text);
+          if (json && json.id) deleted(json.id);
+        } catch (e) {
+          // If parse fails, fallback to local optimistic deletion
+          deleted(id);
+        }
+      } else {
+        deleted(id);
+      }
+    } catch (err) {
+      console.error('Error deleting paper sheet', err);
+    } finally {
+      setIsDeleting(false);
+    }
   }
   return (
     <div className="flex gap-2">

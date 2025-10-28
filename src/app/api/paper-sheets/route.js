@@ -17,9 +17,15 @@ export async function GET() {
     );
   }
 }
-export async function POST() {
+export async function POST(req) {
   try {
-    const paper = await createPaperSheet();
+    const body = await req.json();
+    console.log('POST /api/paper-sheets body=', body);
+    const { name, price } = body || {};
+    if (typeof name === 'undefined' || typeof price === 'undefined') {
+      return NextResponse.json({ error: 'Missing name or price in request body' }, { status: 400 });
+    }
+    const paper = await createPaperSheet(name, price);
     return NextResponse.json(paper);
   } catch (error) {
     return NextResponse.json(
@@ -43,7 +49,12 @@ export async function PUT(req) {
 
 export async function DELETE(req) {
   try {
-    const { id } = await req.json();
+    const body = await req.json();
+    console.log('DELETE /api/paper-sheets body=', body);
+    const { id } = body || {};
+    if (typeof id === 'undefined') {
+      return NextResponse.json({ error: 'Missing id in request body' }, { status: 400 });
+    }
     const deletedPaper = await deletePaperSheet(id);
     return NextResponse.json(deletedPaper);
   } catch (error) {

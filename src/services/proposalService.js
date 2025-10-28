@@ -34,7 +34,7 @@ export async function createProposal(data) {
     data.createdAt || Date.now(),
   ];
 
-  const res = await client.execute(sql, { args });
+  const res = await client.execute(sql, args );
   // res.rows[0] is the created proposal
   return res.rows[0];
 }

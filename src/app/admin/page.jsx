@@ -16,6 +16,8 @@ export default function AdminPage() {
   const [proposals, setProposals] = useState([]);
   const [isLoadingProposals, setIsLoadingProposals] = useState(true);
   const [errorProposals, setErrorProposals] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   function deletePaperLocal(id) {
     console.log(id);
@@ -34,6 +36,7 @@ export default function AdminPage() {
     const res = await fetch("/api/paper-sheets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Yeni Kağıt", price: 0 }),
     });
     if (!res.ok) {
       console.error("Server error:", res.status);
@@ -49,7 +52,13 @@ export default function AdminPage() {
       return;
     }
 
-    const json = JSON.parse(text);
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (e) {
+      console.error('Failed to parse JSON response for createPaper', e, text);
+      return;
+    }
     console.log("Created paper:", json);
     setPaperSheets([...paperSheets, json]);
     setIsLoading(false);
@@ -60,6 +69,7 @@ export default function AdminPage() {
     const res = await fetch("/api/laminations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Yeni Laminasyon", price: 0 }),
     });
     if (!res.ok) {
       console.error("Server error:", res.status);
@@ -75,7 +85,13 @@ export default function AdminPage() {
       return;
     }
 
-    const json = JSON.parse(text);
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (e) {
+      console.error('Failed to parse JSON response for createLamination', e, text);
+      return;
+    }
     console.log("Created lamination:", json);
     setLaminations([...laminations, json]);
     setIsLoading(false);
@@ -150,6 +166,11 @@ export default function AdminPage() {
     loadPapers();
     fetchProposals();
   }, []);
+
+  // Reset current page when filters/sort or proposals change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [proposalFilter, proposalSort, proposals, pageSize]);
 
   if (isLoading) {
     return (
@@ -249,7 +270,7 @@ export default function AdminPage() {
         ) : (
           (() => {
             // Filter and sort proposals
-            let filtered = proposals.filter(p =>
+            let filtered = proposals.filter((p) =>
               proposalFilter.trim() === "" ? true : p.name?.toLowerCase().includes(proposalFilter.trim().toLowerCase())
             );
             if (proposalSort === "desc") {
@@ -259,10 +280,18 @@ export default function AdminPage() {
             } else if (proposalSort === "name") {
               filtered = filtered.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
             }
+
+            const totalItems = filtered.length;
+            const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+            // ensure currentPage is within range
+            const page = Math.min(Math.max(1, currentPage), totalPages);
+            const start = (page - 1) * pageSize;
+            const pageItems = filtered.slice(start, start + pageSize);
+
             return (
               <div>
                 <ul className="divide-y divide-gray-200">
-                  {filtered.map((proposal) => (
+                  {pageItems.map((proposal) => (
                     <li key={proposal.id} className="flex items-center justify-between py-3 px-2">
                       <div>
                         <span className="font-semibold text-blue-700">{proposal.name}</span>
@@ -277,9 +306,54 @@ export default function AdminPage() {
                     </li>
                   ))}
                 </ul>
+
+                {/* Pagination controls */}
+                <div className="flex items-center justify-between mt-4">
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="px-3 py-1 border rounded disabled:opacity-50"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={page <= 1}
+                    >
+                      ‹
+                    </button>
+                    <span className="text-sm text-gray-600">Sayfa {page} / {totalPages}</span>
+                    <button
+                      className="px-3 py-1 border rounded disabled:opacity-50"
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page >= totalPages}
+                    >
+                     ›
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-600">Göster:</label>
+                    <select
+                      value={pageSize}
+                      onChange={(e) => setPageSize(Number(e.target.value))}
+                      className="px-2 py-1 border rounded text-sm"
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                    </select>
+                  </div>
+                </div>
+
                 {showModal && selectedProposal && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                    <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+                  <div
+                    className="fixed inset-0 z-50 flex items-center justify-center  backdrop-blur-md
+"
+                    onClick={() => setShowModal(false)}
+                  >
+                    <div
+                      className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative"
+                      onClick={(e) => e.stopPropagation()}
+                      role="dialog"
+                      aria-modal="true"
+                    >
                       <button
                         className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
                         onClick={() => setShowModal(false)}
