@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import PaperSheetAdmin from "../components/PaperSheetAdmin";
 import LaminationAdmin from "../components/LaminationAdmin";
-import { Loader } from "lucide-react";
+import { Loader, X } from "lucide-react";
 
 export default function AdminPage() {
   const [selectedProposal, setSelectedProposal] = useState(null);
@@ -56,7 +56,7 @@ export default function AdminPage() {
     try {
       json = JSON.parse(text);
     } catch (e) {
-      console.error('Failed to parse JSON response for createPaper', e, text);
+      console.error("Failed to parse JSON response for createPaper", e, text);
       return;
     }
     console.log("Created paper:", json);
@@ -89,7 +89,11 @@ export default function AdminPage() {
     try {
       json = JSON.parse(text);
     } catch (e) {
-      console.error('Failed to parse JSON response for createLamination', e, text);
+      console.error(
+        "Failed to parse JSON response for createLamination",
+        e,
+        text
+      );
       return;
     }
     console.log("Created lamination:", json);
@@ -153,6 +157,26 @@ export default function AdminPage() {
       setIsLoadingProposals(false);
     }
   }
+  async function deleteProposal(id) {
+    
+    try {
+      const res = await fetch("/api/proposals", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('Failed to delete lamination:', res.status, text);
+      
+        return;
+      }
+      
+    } finally {
+      setProposals(proposals.filter(proposal=>proposal.id!==id))
+     
+    }
+  }
 
   useEffect(() => {
     async function loadPapers() {
@@ -183,7 +207,7 @@ export default function AdminPage() {
     );
   }
   return (
-  <div className="space-y-6">
+    <div className="space-y-6">
       {/* KAĞIT TABAKA FİYATLARI */}
       <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -205,7 +229,9 @@ export default function AdminPage() {
                 key={paper.id}
                 deleted={deletePaperLocal}
                 onUpdate={(updated) =>
-                  setPaperSheets((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+                  setPaperSheets((prev) =>
+                    prev.map((p) => (p.id === updated.id ? updated : p))
+                  )
                 }
               />
             ))}
@@ -231,7 +257,9 @@ export default function AdminPage() {
                 key={lamination.id}
                 deleted={deleteLaminationLocal}
                 onUpdate={(updated) =>
-                  setLaminations((prev) => prev.map((l) => (l.id === updated.id ? updated : l)))
+                  setLaminations((prev) =>
+                    prev.map((l) => (l.id === updated.id ? updated : l))
+                  )
                 }
               />
             ))}
@@ -246,13 +274,13 @@ export default function AdminPage() {
             <input
               type="text"
               value={proposalFilter}
-              onChange={e => setProposalFilter(e.target.value)}
+              onChange={(e) => setProposalFilter(e.target.value)}
               placeholder="Ad ile filtrele..."
               className="px-3 py-2 border rounded focus:ring focus:ring-blue-200 text-sm"
             />
             <select
               value={proposalSort}
-              onChange={e => setProposalSort(e.target.value)}
+              onChange={(e) => setProposalSort(e.target.value)}
               className="px-3 py-2 border rounded text-sm"
             >
               <option value="desc">En yeni</option>
@@ -271,14 +299,20 @@ export default function AdminPage() {
           (() => {
             // Filter and sort proposals
             let filtered = proposals.filter((p) =>
-              proposalFilter.trim() === "" ? true : p.name?.toLowerCase().includes(proposalFilter.trim().toLowerCase())
+              proposalFilter.trim() === ""
+                ? true
+                : p.name
+                    ?.toLowerCase()
+                    .includes(proposalFilter.trim().toLowerCase())
             );
             if (proposalSort === "desc") {
               filtered = filtered.sort((a, b) => b.id - a.id);
             } else if (proposalSort === "asc") {
               filtered = filtered.sort((a, b) => a.id - b.id);
             } else if (proposalSort === "name") {
-              filtered = filtered.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+              filtered = filtered.sort((a, b) =>
+                (a.name || "").localeCompare(b.name || "")
+              );
             }
 
             const totalItems = filtered.length;
@@ -292,17 +326,42 @@ export default function AdminPage() {
               <div>
                 <ul className="divide-y divide-gray-200">
                   {pageItems.map((proposal) => (
-                    <li key={proposal.id} className="flex items-center justify-between py-3 px-2">
+                    <li
+                      key={proposal.id}
+                      className="flex items-center justify-between py-3 px-2"
+                    >
                       <div>
-                        <span className="font-semibold text-blue-700">{proposal.name}</span>
-                        <span className="ml-2 text-gray-600">{proposal.total ? proposal.total + "₺" : "-"}</span>
+                        <span className="font-semibold text-blue-700">
+                          {proposal.name}
+                        </span>
+                        <span className="ml-2 text-gray-600">
+                          {proposal.total ? proposal.total + "₺" : "-"}
+                          {proposal.id}
+                        </span>
                       </div>
+                     <div className="flex gap-4">
+                       <button
+                        onClick={() => deleteProposal(proposal.id)}
+                        
+                        className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+                      >
+                        
+                          <>
+                            <X size={9} />
+                            <span className="hidden md:block">Sil</span>
+                          </>
+                       
+                      </button>
                       <button
                         className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-xs"
-                        onClick={() => { setSelectedProposal(proposal); setShowModal(true); }}
+                        onClick={() => {
+                          setSelectedProposal(proposal);
+                          setShowModal(true);
+                        }}
                       >
                         Detaylar
                       </button>
+                     </div>
                     </li>
                   ))}
                 </ul>
@@ -317,13 +376,17 @@ export default function AdminPage() {
                     >
                       ‹
                     </button>
-                    <span className="text-sm text-gray-600">Sayfa {page} / {totalPages}</span>
+                    <span className="text-sm text-gray-600">
+                      Sayfa {page} / {totalPages}
+                    </span>
                     <button
                       className="px-3 py-1 border rounded disabled:opacity-50"
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
                       disabled={page >= totalPages}
                     >
-                     ›
+                      ›
                     </button>
                   </div>
 
@@ -360,25 +423,90 @@ export default function AdminPage() {
                       >
                         ×
                       </button>
-                      <h3 className="text-lg font-bold text-blue-700 mb-4">Teklif Detayları</h3>
+                      <h3 className="text-lg font-bold text-blue-700 mb-4">
+                        Teklif Detayları
+                      </h3>
                       <div className="space-y-2 text-sm">
-                        <div><span className="font-semibold">Ad:</span> {selectedProposal.name}</div>
-                        <div><span className="font-semibold">Bıçak En:</span> {selectedProposal.bladeWidth}</div>
-                        <div><span className="font-semibold">Bıçak Boy:</span> {selectedProposal.bladeLength}</div>
-                        <div><span className="font-semibold">Makine Oranı:</span> {selectedProposal.machineRatio}</div>
-                        <div><span className="font-semibold">Adet:</span> {selectedProposal.numOfPieces}</div>
-                        <div><span className="font-semibold">Kağıt:</span> {selectedProposal.paperSheet?.name || '-'}</div>
-                        <div><span className="font-semibold">Kağıt Fiyatı:</span> {selectedProposal.paperSheetPriceAtProposal}₺</div>
-                        <div><span className="font-semibold">Baskı Fiyatı:</span> {selectedProposal.printingPrice}₺</div>
-                        <div><span className="font-semibold">Laminasyon:</span> {selectedProposal.laminationObj?.name || '-'}</div>
-                        <div><span className="font-semibold">Laminasyon Fiyatı:</span> {selectedProposal.laminationPriceAtProposal}₺</div>
-                        <div><span className="font-semibold">Kesim Fiyatı:</span> {selectedProposal.cuttingPrice}₺</div>
-                        <div><span className="font-semibold">Yapıştırma Fiyatı:</span> {selectedProposal.gluingPrice}₺</div>
-                        <div><span className="font-semibold">Bıçak Bedeli:</span> {selectedProposal.bladePrice}₺</div>
-                        <div><span className="font-semibold">Kargo:</span> {selectedProposal.shipping}₺</div>
-                        <div><span className="font-semibold">Ara Toplam:</span> {selectedProposal.subtotal ? selectedProposal.subtotal + "₺" : "-"}</div>
-                        <div><span className="font-semibold">Genel Toplam:</span> {selectedProposal.total ? selectedProposal.total + "₺" : "-"}</div>
-                        <div><span className="font-semibold">Tarih:</span> {selectedProposal.createdAt ? new Date(selectedProposal.createdAt).toLocaleString() : "-"}</div>
+                        <div>
+                          <span className="font-semibold">Ad:</span>{" "}
+                          {selectedProposal.name}
+                        </div>
+                        <div>
+                          <span className="font-semibold">Bıçak En:</span>{" "}
+                          {selectedProposal.bladeWidth}
+                        </div>
+                        <div>
+                          <span className="font-semibold">Bıçak Boy:</span>{" "}
+                          {selectedProposal.bladeLength}
+                        </div>
+                        <div>
+                          <span className="font-semibold">Makine Oranı:</span>{" "}
+                          {selectedProposal.machineRatio}
+                        </div>
+                        <div>
+                          <span className="font-semibold">Adet:</span>{" "}
+                          {selectedProposal.numOfPieces}
+                        </div>
+                        <div>
+                          <span className="font-semibold">Kağıt:</span>{" "}
+                          {selectedProposal.paperSheet?.name || "-"}
+                        </div>
+                        <div>
+                          <span className="font-semibold">Kağıt Fiyatı:</span>{" "}
+                          {selectedProposal.paperSheetPriceAtProposal}₺
+                        </div>
+                        <div>
+                          <span className="font-semibold">Baskı Fiyatı:</span>{" "}
+                          {selectedProposal.printingPrice}₺
+                        </div>
+                        <div>
+                          <span className="font-semibold">Laminasyon:</span>{" "}
+                          {selectedProposal.laminationObj?.name || "-"}
+                        </div>
+                        <div>
+                          <span className="font-semibold">
+                            Laminasyon Fiyatı:
+                          </span>{" "}
+                          {selectedProposal.laminationPriceAtProposal}₺
+                        </div>
+                        <div>
+                          <span className="font-semibold">Kesim Fiyatı:</span>{" "}
+                          {selectedProposal.cuttingPrice}₺
+                        </div>
+                        <div>
+                          <span className="font-semibold">
+                            Yapıştırma Fiyatı:
+                          </span>{" "}
+                          {selectedProposal.gluingPrice}₺
+                        </div>
+                        <div>
+                          <span className="font-semibold">Bıçak Bedeli:</span>{" "}
+                          {selectedProposal.bladePrice}₺
+                        </div>
+                        <div>
+                          <span className="font-semibold">Kargo:</span>{" "}
+                          {selectedProposal.shipping}₺
+                        </div>
+                        <div>
+                          <span className="font-semibold">Ara Toplam:</span>{" "}
+                          {selectedProposal.subtotal
+                            ? selectedProposal.subtotal + "₺"
+                            : "-"}
+                        </div>
+                        <div>
+                          <span className="font-semibold">Genel Toplam:</span>{" "}
+                          {selectedProposal.total
+                            ? selectedProposal.total + "₺"
+                            : "-"}
+                        </div>
+                        <div>
+                          <span className="font-semibold">Tarih:</span>{" "}
+                          {selectedProposal.createdAt
+                            ? new Date(
+                                selectedProposal.createdAt
+                              ).toLocaleString()
+                            : "-"}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -388,7 +516,6 @@ export default function AdminPage() {
           })()
         )}
       </div>
-  
     </div>
   );
 }

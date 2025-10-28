@@ -31,9 +31,9 @@ export default function LaminationAdmin({ lamination, deleted, onUpdate }) {
     });
 
     const json = await res.json();
-    console.log(json);
+ 
     if (!res.ok) {
-      console.log("error while updating lamination");
+      console.error("error while updating lamination");
     }
     if (onUpdate && json) {
       try {

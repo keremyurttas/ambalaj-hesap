@@ -32,9 +32,8 @@ export default function PaperSheetAdmin({ paper, deleted, onUpdate }) {
     });
 
     const json = await res.json();
-    console.log(json);
     if (!res.ok) {
-      console.log("error while updating paperSheet");
+      console.error("error while updating paperSheet");
     }
     // Notify parent about the updated paper so it can update local state
     if (onUpdate && json) {

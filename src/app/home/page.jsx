@@ -37,7 +37,7 @@ export default function AmbalajMaliyetApp() {
       const selectedLaminationObj = laminations.find(
         (l) => l.id === Number(formData.lamination)
       );
-      console.log(subTotal, total);
+
 
       const proposalData = {
         name: formData.name,
@@ -61,7 +61,7 @@ export default function AmbalajMaliyetApp() {
         subTotal: Math.round(Number(subTotal)),
         total: Math.round(Number(total)),
       };
-      console.log("Sending proposalData:", proposalData);
+  
       const res = await fetch("/api/proposals", {
         method: "POST",
         headers: {
@@ -175,7 +175,7 @@ export default function AmbalajMaliyetApp() {
       setPaperSheets(papers);
       const laminations = await fetchLaminations();
       setLaminations(laminations);
-      console.log(laminations);
+    
     }
 
     loadPapers();

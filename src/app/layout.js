@@ -43,7 +43,7 @@ export default function RootLayout({ children }) {
             <Link
               href="/home"
               className={`flex-1 py-4 px-4 md:px-6 font-semibold transition-colors text-sm md:text-base ${
-                path ==="/home"
+                path ==="/home" || path ==="/"
                   ? "bg-blue-50 text-blue-600 border-b-2 border-blue-600"
                   : "text-gray-600 hover:bg-gray-50"
               }`}

@@ -63,3 +63,17 @@ export async function getProposals() {
     };
   });
 }
+export async function deleteProposal(id){
+  try{
+    const sql = 'DELETE FROM Proposal WHERE id = ? RETURNING id;';
+    const args =[id];
+    const res = await client.execute(sql,args);
+    console.log(res)
+    return res.rows[0]
+  }
+  catch(error){
+    console.error('delete proposal service error:', error);
+    throw new Error(`Failed to delete proposal: ${error}`)
+  }
+
+}

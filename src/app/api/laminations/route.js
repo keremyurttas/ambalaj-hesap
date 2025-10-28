@@ -20,7 +20,6 @@ export async function GET() {
 export async function POST(req) {
   try {
     const body = await req.json();
-    console.log('POST /api/laminations body=', body);
     const { name, price } = body || {};
     if (typeof name === 'undefined' || typeof price === 'undefined') {
       return NextResponse.json({ error: 'Missing name or price in request body' }, { status: 400 });
@@ -50,7 +49,6 @@ export async function PUT(req) {
 export async function DELETE(req) {
   try {
     const body = await req.json();
-    console.log('DELETE /api/laminations body=', body);
     const { id } = body || {};
     if (typeof id === 'undefined') {
       return NextResponse.json({ error: 'Missing id in request body' }, { status: 400 });
